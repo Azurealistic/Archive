@@ -1,0 +1,25 @@
+# For documentation on this file, see:
+# https://github.com/riggraz/no-style-please#customize-the-menu
+
+entries:
+  - title: introduction
+    entries:
+      - title: i'm muhammad asavir. i spend my days doing ci/cd and platform engineering. outside of that i love coding for fun, shooting archery, and lift weights. i'm interested in reverse engineering and writing games and mods.
+      - title: my github 
+        url: https://github.com/azurealistic
+      - title: my twitter
+        url: https://x.com/azurealistic
+      - title: my linkedin
+        url: https://www.linkedin.com/in/muhammad-asavir/
+
+  - title: all posts
+    post_list:
+      limit: 5
+      show_more: true
+      show_more_text: visit archive...
+      show_more_url: archive.html
+
+  - title: other
+    entries:
+      - title: rss
+        url: feed.xml
