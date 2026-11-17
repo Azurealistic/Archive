@@ -14,44 +14,33 @@ concurrency:
 
 jobs:
   deploy:
-    name: Build and Deploy
+    name: Build and Deploy to S3
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout from Source Control
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          submodules: recursive   # needed if the theme is a git submodule
-          fetch-depth: 0          # needed for .GitInfo / .Lastmod
+          node-version: 22
+          cache: npm
 
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v3
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Astro site
+        run: npm run build   # outputs to ./dist
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          hugo-version: "latest"  # pin an exact version for reproducible builds
-          extended: true
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-      - name: Build
-        run: hugo --minify
-        env:
-          HUGO_ENVIRONMENT: production
-
-      - name: Configure SSH
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
+      - name: Sync site to S3 (full replace)
         run: |
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p "${SSH_PORT:-22}" -H "$SSH_HOST" >> ~/.ssh/known_hosts
-
-      - name: Sync to server (full replace)
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-        run: |
-          rsync -avz --delete \
-            -e "ssh -i ~/.ssh/deploy_key -p ${SSH_PORT:-22}" \
-            public/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+          aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }} \
+            --delete \
+            --exact-timestamps
