@@ -45,6 +45,8 @@
   color-scheme: light dark;
   color: var(--theme-text);
 
+  background: var(--theme-bg);
+
   font-family: "IBM Plex Mono", monospace;
   line-height: 1.667;
   -webkit-font-smoothing: antialiased;
@@ -80,7 +82,8 @@ code ::selection {
 
 body {
   background: var(--theme-bg);
-
+  min-height: 100vh;   /* fallback for older browsers */
+  min-height: 100dvh;  /* dynamic viewport height, mobile-friendly */
   font-size: 13px;
   max-width: 60em;
   padding: 7em;
